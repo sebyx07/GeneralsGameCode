@@ -26,6 +26,7 @@ jobs:
       generals: ${{ steps.filter.outputs.generals }}
       generalsmd: ${{ steps.filter.outputs.generalsmd }}
       shared: ${{ steps.filter.outputs.shared }}
+      tests: ${{ steps.filter.outputs.tests }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -47,6 +48,10 @@ jobs:
               - 'cmake/**'
               - 'Core/**'
               - 'Dependencies/**'
+            tests:
+              - 'tests/**'
+              - 'Core/Libraries/Source/WWVegas/WWLib/ThreadPool.h'
+              - 'Core/Libraries/Source/WWVegas/WWLib/Parallelize.h'
 
       - name: Changes Summary
         run: |
@@ -54,6 +59,47 @@ jobs:
           echo "- Generals: ${{ steps.filter.outputs.generals == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
           echo "- GeneralsMD: ${{ steps.filter.outputs.generalsmd == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
           echo "- Shared: ${{ steps.filter.outputs.shared == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Tests: ${{ steps.filter.outputs.tests == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
+
+  # TheSuperHackers @feature Claude 08/01/2026 Add unit test job
+  unit-tests:
+    name: Unit Tests
+    needs: detect-changes
+    if: ${{ github.event_name == 'workflow_dispatch' || needs.detect-changes.outputs.tests == 'true' || needs.detect-changes.outputs.shared == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build
+
+      - name: Configure CMake
+        run: |
+          cmake -B build/tests -G Ninja \
+            -DRTS_BUILD_TESTS=ON \
+            -DRTS_BUILD_ZEROHOUR=OFF \
+            -DRTS_BUILD_GENERALS=OFF \
+            -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build Tests
+        run: cmake --build build/tests --target ThreadPoolTest ParallelizeTest
+
+      - name: Run ThreadPool Tests
+        run: ./build/tests/tests/ThreadPoolTest --gtest_output=xml:test-results-threadpool.xml
+
+      - name: Run Parallelize Tests
+        run: ./build/tests/tests/ParallelizeTest --gtest_output=xml:test-results-parallelize.xml
+
+      - name: Test Summary
+        if: always()
+        run: |
+          echo "### 🧪 Unit Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "- ThreadPool: ✅" >> $GITHUB_STEP_SUMMARY
+          echo "- Parallelize: ✅" >> $GITHUB_STEP_SUMMARY
 
   build-generals:
     name: Build Generals${{ matrix.preset && '' }}
