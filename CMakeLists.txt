@@ -75,5 +75,11 @@ if(RTS_BUILD_GENERALS)
     add_subdirectory(Generals)
 endif()
 
+# TheSuperHackers @feature Claude 08/01/2026 Add test support
+option(RTS_BUILD_TESTS "Build unit tests" OFF)
+if(RTS_BUILD_TESTS)
+    add_subdirectory(tests)
+endif()
+
 feature_summary(WHAT ENABLED_FEATURES DESCRIPTION "Enabled features:")
 feature_summary(WHAT DISABLED_FEATURES DESCRIPTION "Disabled features:")

@@ -1,5 +1,7 @@
 set(WWLIB_SRC
     always.h
+    Parallelize.h
+    ThreadPool.h
     argv.cpp
     argv.h
     b64pipe.cpp
