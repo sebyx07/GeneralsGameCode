@@ -2067,25 +2067,14 @@ Bool Object::isNonFactionStructure(void) const
 	return isStructure() && !isFactionStructure();
 }
 
-void localIsHero( Object *obj, void* userData )
-{
-	Bool *hero = (Bool*)userData;
-
-	if( obj && obj->isKindOf( KINDOF_HERO ) )
-	{
-		*hero = TRUE;
-	}
-}
-
 //-------------------------------------------------------------------------------------------------
+// TheSuperHackers @performance bobtista 13/11/2025 Use cached hero count for O(1) lookup instead of O(n) iteration.
 Bool Object::isHero(void) const
 {
 	ContainModuleInterface *contain = getContain();
 	if( contain )
 	{
-		Bool heroInside = FALSE;
-		contain->iterateContained( localIsHero, (void*)(&heroInside), FALSE );
-		if( heroInside )
+		if( contain->getHeroUnitsContained() > 0 )
 		{
 			return TRUE;
 		}
@@ -3129,6 +3118,12 @@ Bool Object::hasAnySpecialPower() const
 //-------------------------------------------------------------------------------------------------
 void Object::onVeterancyLevelChanged( VeterancyLevel oldLevel, VeterancyLevel newLevel, Bool provideFeedback )
 {
+#if !RETAIL_COMPATIBLE_CRC
+	// TheSuperHackers @bugfix Stubbjax 10/12/2025 Do not apply veterancy bonuses and animations for dead units.
+	if (isEffectivelyDead())
+		return;
+#endif
+
 	updateUpgradeModules();
 
 	const UpgradeTemplate* up = TheUpgradeCenter->findVeterancyUpgrade(newLevel);
@@ -3180,7 +3175,18 @@ void Object::onVeterancyLevelChanged( VeterancyLevel oldLevel, VeterancyLevel ne
 		&& !isKindOf(KINDOF_IGNORED_IN_GUI)
 		&& isLogicallyVisible();
 
-	if( doAnimation && TheGameLogic->getDrawIconUI() )
+	if (doAnimation)
+		createVeterancyLevelFX(oldLevel, newLevel);
+}
+
+void Object::createVeterancyLevelFX(VeterancyLevel oldLevel, VeterancyLevel newLevel)
+{
+#if RETAIL_COMPATIBLE_CRC
+	if (isEffectivelyDead())
+		return;
+#endif
+
+	if (TheGameLogic->getDrawIconUI())
 	{
 		if( TheAnim2DCollection && TheGlobalData->m_levelGainAnimationName.isEmpty() == FALSE )
 		{
@@ -3200,7 +3206,6 @@ void Object::onVeterancyLevelChanged( VeterancyLevel oldLevel, VeterancyLevel ne
 		soundToPlay.setObjectID( getID() );
 		TheAudio->addAudioEvent( &soundToPlay );
 	}
-
 }
 
 //-------------------------------------------------------------------------------------------------
