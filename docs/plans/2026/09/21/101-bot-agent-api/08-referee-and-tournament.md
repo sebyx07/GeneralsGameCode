@@ -15,8 +15,8 @@ connects to the game.
 It is **not** the only enforcement layer (a local bot could try the game's port directly):
 - the referee launches the game with the match limits as engine flags (`-botapiMode`, `-botapiMaxOrders`, `-botapiNoRaw`,
   `-botapiNoSession`, [04](04-bridge-protocol.md) §Modes and safety), so the engine enforces them itself;
-- the referee alone holds the per-match token and connects first; the bot never sees the token or the game's port;
-- for public ladders, bot processes run in a sandbox/container without access to the game's network namespace.
+- the referee generates the per-match token, hands it to the game on stdin, and connects first; the bot never sees the token or the game's port;
+- for public ladders, bot processes run as a different OS user or in a sandbox/container without access to the game's network namespace (the bridge trusts the OS user account, [04](04-bridge-protocol.md) §Transport).
 
 | Referee does | How |
 |---|---|

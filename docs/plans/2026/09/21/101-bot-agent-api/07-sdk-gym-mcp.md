@@ -56,7 +56,7 @@ Few parameterized tools, constant size regardless of how many orders/templates e
 | `docs({q?, uri?})` | Recipes and reference. `docs({})` = the map. Search inlines the best hit; a miss returns nearest matches, never empty |
 | `list_resources({})` | Object kinds, order types, map info, what this match allows |
 | `describe_resource({resource})` | Fields/enums for one order or object kind, loaded lazily |
-| `query({filters, fields, area?, since_frame?, format: "text"|"json"})` | Batch read; `text` = summaries sized for context windows |
+| `query({filters, fields, area?, since_frame?, format: "text"\|"json"})` | Batch read; `text` = summaries sized for context windows |
 | `act({orders:[…]})` | Batch orders; per-order result; every error carries a `docs://` URI to the recipe that fixes it |
 | `session({…})` | Create/join games ([05](05-match-setup-and-lobby.md)) |
 | `chat({to, text})` / `beacon({at, text})` | Talk to human teammates ([05](05-match-setup-and-lobby.md) §Team play with humans) |

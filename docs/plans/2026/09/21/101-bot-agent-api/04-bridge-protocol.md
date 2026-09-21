@@ -15,7 +15,9 @@ multi-second LLM without changes on the engine side.
 | **TCP on `127.0.0.1`**, port from `-botapi <port>` | Same code on Windows, Linux (native or Wine) and macOS (Wine/CrossOver); crosses the Wine boundary to native bots; Winsock already linked (`Core/GameEngine/Source/GameNetwork/Transport.cpp:94`) |
 | Game is the **server**; one client at a time | Mirrors SC2 `-listen`; the bot or a launcher can connect after start |
 | **One port per game instance**; `-botapi 0` = OS picks a free port, reported on stdout (`BOTAPI_PORT=<n>`) and in a port file in the instance's user dir | Many instances per host (training, bot vs bot) without collisions; the runner reads the port back instead of pre-allocating |
-| **Every connection authenticates**, loopback included: first frame must carry the token. Token from `-botapiToken <secret>`, or, if absent, the engine generates a random 128-bit token and writes it next to the port file (readable by the launching user only) | Loopback is not a trust boundary: any local process can find the port and race the intended client |
+| **Every connection authenticates**, loopback included: first frame must carry the token | Loopback is not a trust boundary: any local process can find the port and race the intended client |
+| **Token never on the command line or in a user-dir file.** The launcher passes it on an inherited channel: the first line of the game's stdin (default), or an inherited pipe handle. With no launcher (a human starting the game by hand), the engine generates a random 128-bit token and shows it once in the console/log for the user to paste into their bot | Command-line arguments and user-readable files are visible to other processes |
+| **Trust boundary = the OS user account.** Processes running as the same user can already read game memory or inject a DLL, so the bridge does not try to defend against them. Untrusted bots (ladders, tournaments) run as a **different OS user or in a sandbox/container** ([08](08-referee-and-tournament.md)) | States what the token actually protects against: other users, other hosts and the connection race — not a malicious same-user process |
 | First authenticated client owns the bridge for the whole match; later connections are refused; a dropped client may reconnect with the same token | No connection race, no hijack mid-match |
 | Non-loopback bind only with `-botapiBind <addr>` | Remote bots (e.g. a GPU box) are possible but never accidental |
 | Non-blocking socket, polled once per engine tick | No threads in the engine; no locks around logic |
@@ -100,7 +102,7 @@ for a model with 100 ms–seconds per decision, per-unit calls are the bottlenec
 | Rule | Why |
 |---|---|
 | Bridge is off unless `-botapi` is passed; compiled in behind a CMake option (open question 8) | Zero cost and zero surface by default |
-| **Fairness limits are enforced in the engine**, from launch flags, not only by the referee: `-botapiMode player|camera`, `-botapiMaxOrders <n>`, `-botapiNoRaw`, `-botapiNoSession`. `hello` can only ask for *less* | A bot that reaches the port directly still cannot get more than the match allows; the referee is defence in depth, not the only gate |
+| **Fairness limits are enforced in the engine**, from launch flags, not only by the referee: `-botapiMode player\|camera`, `-botapiMaxOrders <n>`, `-botapiNoRaw`, `-botapiNoSession`. `hello` can only ask for *less* | A bot that reaches the port directly still cannot get more than the match allows; the referee is defence in depth, not the only gate |
 | `full` visibility refused if the game is a network game | No maphack in multiplayer — the Pluto ladder incident |
 | Orders only for the local player | Engine already enforces per-slot identity over the network (`Core/GameEngine/Source/GameNetwork/NetCommandMsg.cpp:156`) |
 | Network games: bot flag announced + `[BOT]` name tag | [05](05-match-setup-and-lobby.md) |

@@ -30,7 +30,7 @@ For scenarios 6 and 7 an agent must be a usable teammate, not just an opponent.
 | Need | Engine path | Bridge surface |
 |---|---|---|
 | Read team/all chat | Chat already travels over the network (`NetworkInterface::sendChat(text, playerMask)`, `Core/GameEngine/Include/GameNetwork/NetworkInterface.h:71`) | `chat` events (sender, audience, text) |
-| Write chat | Same `sendChat` the in-game chat box uses | `chat {to: team|all, text}` request, rate-limited |
+| Write chat | Same `sendChat` the in-game chat box uses | `chat {to: team\|all, text}` request, rate-limited |
 | Beacons / map pings | `MSG_PLACE_BEACON`, `MSG_REMOVE_BEACON`, `MSG_SET_BEACON_TEXT` (`Core/GameEngine/Include/Common/MessageStream.h:598-600`) — ordinary network messages | `beacon` order + `beacon` events |
 | Allied vision | Whatever the game already shares with allies (to verify in the shroud code) | Nothing new; follows the `player` visibility rule, which reads the same shroud the human ally would see |
 
@@ -68,8 +68,8 @@ controlled slot carries the `[BOT]` tag and the referee can forbid it per match.
 | Action | Engine path |
 |---|---|
 | `maps.list` | Map cache used by the skirmish/LAN menus |
-| `skirmish.create {map, slots:[{type: me|ai_easy|ai_med|ai_brutal|closed, faction, color, team, start}], options}` | `TheSkirmishGameInfo` as filled by `GeneralsMD/Code/GameEngine/Source/GameClient/GUI/GUICallbacks/Menus/SkirmishGameOptionsMenu.cpp:432` |
-| `lan.list` / `lan.host {name, map, options}` / `lan.join {game | ip}` | `LANAPI::RequestGameCreate`, `RequestGameJoin`, `RequestGameJoinDirectConnect` (`Core/GameEngine/Include/GameNetwork/LANAPI.h:75-85`) |
+| `skirmish.create {map, slots:[{type: me\|ai_easy\|ai_med\|ai_brutal\|closed, faction, color, team, start}], options}` | `TheSkirmishGameInfo` as filled by `GeneralsMD/Code/GameEngine/Source/GameClient/GUI/GUICallbacks/Menus/SkirmishGameOptionsMenu.cpp:432` |
+| `lan.list` / `lan.host {name, map, options}` / `lan.join {game \| ip}` | `LANAPI::RequestGameCreate`, `RequestGameJoin`, `RequestGameJoinDirectConnect` (`Core/GameEngine/Include/GameNetwork/LANAPI.h:75-85`) |
 | `lobby.set {faction, color, team, start}` / `lobby.ready` / `lobby.chat` | Same messages the LAN lobby menu sends |
 | `lobby.start` (host) | Same as the host pressing Start |
 | `game.leave` / `game.surrender` | Same as the menu |
